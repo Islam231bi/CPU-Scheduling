@@ -1,7 +1,6 @@
 #include <bits/stdc++.h>
 #include "Process.h"
-
-
+#include "Policy.h"
 
 int main(){
 
@@ -9,13 +8,44 @@ int main(){
     std::string policy;
     int last_instance;
     int num_process;
-    std::vector <Process> process_list ;
+    std::vector <Process> _process_list;
+    std::vector <Policy> _Policy_list;
 
     std::cin >> mode;
     std::cin >> policy;
     std::cin >> last_instance;
     std::cin >> num_process;
 
+
+    // Parsing policy information and adding to policy list
+    std::vector<std::string> policies;
+    std::string temp = "";
+    for(int i = 0 ; i < policy.size() ; i++){
+        if(policy[i] != ',')
+            temp.push_back(policy[i]);
+        else if(policy[i] == ','){
+            policies.push_back(temp);
+            temp.clear();
+        }
+    }
+    // Adding last policy
+    policies.push_back(temp);
+
+
+    for(auto pol : policies){
+        if(pol.size() == 1){
+            Policy p (stoi(pol),-1);
+            _Policy_list.push_back(p);
+        }
+        else if (pol.size() == 3){
+            Policy p (pol[0]- '0',pol[2] - '0');
+            _Policy_list.push_back(p);
+        }
+    }
+
+
+
+    // Parsing Process information and adding to Process list
     for(int i = 0 ; i < num_process ; i++){
         std::string p_list;
         std::cin >> p_list;
@@ -50,13 +80,21 @@ int main(){
 
         Process p (name, arrival_time, service_time, priority);
 
-        process_list.push_back(p);
+        _process_list.push_back(p);
     }
 
-    for(auto p : process_list){
+    for(auto p : _process_list){
         std::cout<<p.name<<" "<<p.arrival_time<<" "<<p.service_time<<" "<<p.priority<<"\n";
     }
+
+    for(auto pp : _Policy_list){
+        std::cout<<pp.name<<" "<<pp.number<<" "<<pp.quanta<<"\n";
+    }
+    
     std::cout<<mode<<" "<<policy<<" "<<last_instance<<" "<<num_process<<"\n";
+
+
+
 
     return 0;
 }
