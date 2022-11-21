@@ -12,6 +12,15 @@ struct less_than_av
     }
 };
 
+// Struct with operator to compare Process objects according to service time
+struct less_than_st
+{
+    inline bool operator() (const Process& p1, const Process& p2)
+    {
+        return (p1.service_time < p2.service_time);
+    }
+};
+
 
 // Function for printing stats of policy 
 void print_stats(std::string name, std::vector<Process>& _process_list, float mean1 , float mean2){
@@ -69,10 +78,12 @@ void FCFS (std::vector<Process>& _process_list, std::string mode, int last_insta
     }
 
     // Finish time calculations
-    _process_list[0].finish_time = _process_list[0].service_time;
+    _process_list[0].finish_time = _process_list[0].arrival_time + _process_list[0].service_time;
+    _process_list[0].completed = true;
 
     for(int i = 1 ; i < _process_list.size() ; i++){
         _process_list[i].finish_time = _process_list[i].service_time + _process_list[i-1].finish_time;
+        _process_list[i].completed = true;
     }
 
     // Turnaround time calculations
@@ -115,14 +126,68 @@ void RR (std::vector<Process>& _process_list, std::string mode, int last_instanc
     for(auto process: _process_list){
         process.Reset();
     }
-
     
+
+    if (mode == "trace") {
+
+    }
+    else if (mode == "stats") {
+        // print_stats("RR", _process_list, turnaround_mean, norm_mean);
+
+    }
 }
 
 void SPN (std::vector<Process>& _process_list, std::string mode, int last_instance){
    // Resetting values for each process
     for(auto process: _process_list){
         process.Reset();
+    }
+
+    // Finish time calculations
+    _process_list[0].finish_time = _process_list[0].arrival_time + _process_list[0].service_time;
+    _process_list[0].completed = true;
+
+    int current_time = _process_list[0].finish_time;
+
+    // sorting remaining processes by service time 
+    sort(_process_list.begin()+1, _process_list.end(), less_than_st());
+
+    int i = 1;
+    for(; i < _process_list.size(); i++){
+        if(_process_list[i].arrival_time <= current_time){
+            if(!_process_list[i].completed){
+                _process_list[i].completed = true;
+                current_time = current_time + _process_list[i].service_time;
+                _process_list[i].finish_time = current_time;
+                i = 0;
+            }
+        }
+    }
+    sort(_process_list.begin()+1, _process_list.end(), less_than_av());
+
+    // Turnaround time calculations
+    float turn_sum = 0;
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        _process_list[i].turnaround_time = _process_list[i].finish_time - _process_list[i].arrival_time;
+        turn_sum+=_process_list[i].turnaround_time;
+    }
+
+    // Normalized turnaround time calculations
+    float norm_turn_sum = 0;
+    for(int i = 0 ; i< _process_list.size() ; i++){
+        _process_list[i].norm_turn = (float)_process_list[i].turnaround_time / (float)_process_list[i].service_time;
+        norm_turn_sum+=_process_list[i].norm_turn;
+    }
+
+    // Mean calculations
+    float turnaround_mean = turn_sum / (float) _process_list.size(); 
+    float norm_mean = norm_turn_sum / (float) _process_list.size();
+
+    if (mode == "trace") {
+
+    }
+    else if (mode == "stats") {
+        print_stats("SPN", _process_list, turnaround_mean, norm_mean);
     }
 }
 
@@ -131,12 +196,28 @@ void SRT (std::vector<Process>& _process_list, std::string mode, int last_instan
     for(auto process: _process_list){
         process.Reset();
     }
+
+    if (mode == "trace") {
+
+    }
+    else if (mode == "stats") {
+        // print_stats("SRT", _process_list, turnaround_mean, norm_mean);
+
+    }
 }
 
 void HRRN (std::vector<Process>& _process_list, std::string mode, int last_instance){
     // Resetting values for each process
     for(auto process: _process_list){
         process.Reset();
+    }
+
+    if (mode == "trace") {
+
+    }
+    else if (mode == "stats") {
+        // print_stats("HRRN", _process_list, turnaround_mean, norm_mean);
+
     }
 }
 
@@ -145,6 +226,14 @@ void FB_1 (std::vector<Process>& _process_list, std::string mode, int last_insta
     for(auto process: _process_list){
         process.Reset();
     }
+
+    if (mode == "trace") {
+
+    }
+    else if (mode == "stats") {
+        // print_stats("FB_1", _process_list, turnaround_mean, norm_mean);
+
+    }
 }
 
 void FB_2i (std::vector<Process>& _process_list, std::string mode, int last_instance){
@@ -152,12 +241,28 @@ void FB_2i (std::vector<Process>& _process_list, std::string mode, int last_inst
     for(auto process: _process_list){
         process.Reset();
     }
+
+    if (mode == "trace") {
+
+    }
+    else if (mode == "stats") {
+        // print_stats("FB_2i", _process_list, turnaround_mean, norm_mean);
+
+    }
 }
 
 void Aging(std::vector<Process>& _process_list, std::string mode, int last_instance, int quanta){
     // Resetting values for each process
     for(auto process: _process_list){
         process.Reset();
+    }
+
+    if (mode == "trace") {
+
+    }
+    else if (mode == "stats") {
+        // print_stats("Aging", _process_list, turnaround_mean, norm_mean);
+
     }
 }
 

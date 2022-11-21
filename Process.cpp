@@ -8,11 +8,15 @@ Process::Process(char name, int arrival_time, int service_time, int priority){
     this->finish_time = 0;
     this->turnaround_time = 0;
     this->norm_turn = 0;
+    this->completed = false;
 }
 
 void Process::Reset(){
     this->finish_time = 0;
     this->turnaround_time = 0;
     this->norm_turn = 0;
+    this->completed = false;
 }
+
+
 Process::~Process(){}
