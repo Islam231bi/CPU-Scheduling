@@ -21,7 +21,6 @@ struct less_than_st
     }
 };
 
-
 // Function for printing stats of policy 
 void print_stats(std::string name, std::vector<Process>& _process_list, float mean1 , float mean2){
     std::cout<<name<<"\n";
@@ -212,12 +211,57 @@ void HRRN (std::vector<Process>& _process_list, std::string mode, int last_insta
         process.Reset();
     }
 
+    // Finish time calculations
+    // We choose first process to go next since response ratio is 1 for all processes 
+    _process_list[0].finish_time = _process_list[0].arrival_time + _process_list[0].service_time;
+    _process_list[0].completed = true;
+
+    int current_time = _process_list[0].finish_time;
+
+    int cnt = 0;
+    Process *max_p = nullptr;
+    float max_wait = 0;
+    while(cnt < _process_list.size() - 1 ){
+        for(int i = 1; i < _process_list.size(); i++){
+            if(_process_list[i].completed == false){
+                _process_list[i].HRRN_ratio = ((float) (current_time - _process_list[i].arrival_time 
+                + _process_list[i].service_time))/
+                (float)(_process_list[i].service_time);
+                max_p = _process_list[i].HRRN_ratio >= max_wait ? &_process_list[i] : max_p;
+                max_wait = _process_list[i].HRRN_ratio >= max_wait ? _process_list[i].HRRN_ratio : max_wait;
+            }
+        }
+        max_wait = 0;
+        max_p->completed = true;
+        current_time = current_time + max_p->service_time;
+        max_p->finish_time = current_time;
+        cnt++;
+    }
+
+    // Turnaround time calculations
+    float turn_sum = 0;
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        _process_list[i].turnaround_time = _process_list[i].finish_time - _process_list[i].arrival_time;
+        turn_sum+=_process_list[i].turnaround_time;
+    }
+
+    // Normalized turnaround time calculations
+    float norm_turn_sum = 0;
+    for(int i = 0 ; i< _process_list.size() ; i++){
+        _process_list[i].norm_turn = (float)_process_list[i].turnaround_time / (float)_process_list[i].service_time;
+        norm_turn_sum+=_process_list[i].norm_turn;
+    }
+
+    // Mean calculations
+    float turnaround_mean = turn_sum / (float) _process_list.size(); 
+    float norm_mean = norm_turn_sum / (float) _process_list.size();
+
+
     if (mode == "trace") {
 
     }
     else if (mode == "stats") {
-        // print_stats("HRRN", _process_list, turnaround_mean, norm_mean);
-
+        print_stats("HRRN", _process_list, turnaround_mean, norm_mean);
     }
 }
 
