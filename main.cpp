@@ -2,36 +2,163 @@
 #include "Process.h"
 #include "Policy.h"
 
+
+// Struct with operator to compare Process objects according to arrival time
+struct less_than_av
+{
+    inline bool operator() (const Process& p1, const Process& p2)
+    {
+        return (p1.arrival_time < p2.arrival_time);
+    }
+};
+
+
+// Function for printing stats of policy 
+void print_stats(std::string name, std::vector<Process>& _process_list, float mean1 , float mean2){
+    std::cout<<name<<"\n";
+    std::cout<<"Process";
+    std::cout<<"    |";
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        std::cout << std::setw(3) << _process_list[i].name << std::setw(3) << "|";
+    }
+    std::cout<<"\n";
+
+    std::cout<<"Arrival";
+    std::cout<<"    |";
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        std::cout << std::setw(3) << _process_list[i].arrival_time << std::setw(3) << "|";
+    }
+    std::cout<<"\n";
+
+    std::cout<<"Service";
+    std::cout<<"    |";
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        std::cout << std::setw(3) << _process_list[i].service_time << std::setw(3) << "|";
+    }
+    std::cout<<" Mean|\n";
+
+    std::cout<<"Finish";
+    std::cout<<"     |";
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        std::cout << std::setw(3) << _process_list[i].finish_time << std::setw(3) << "|";
+    }
+    std::cout<<"-----|\n";
+
+    std::cout<<std::fixed<<std::setprecision(2);
+    std::cout<<"Turnaround";
+    std::cout<<" |";
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        std::cout << std::setw(3) << _process_list[i].turnaround_time << std::setw(3) << "|";
+    }
+    std::cout << std::setw(5) << mean1 <<"|";
+    std::cout<<"\n";
+
+    std::cout<<"NormTurn";
+    std::cout<<"   |";
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        std::cout << std::setw(5) << _process_list[i].norm_turn << "|";
+    }
+    std::cout << std::setw(5) << mean2 << "|";
+    std::cout<<"\n\n";
+}
+
 void FCFS (std::vector<Process>& _process_list, std::string mode, int last_instance){
-    // std::cout<<"Ececuting FCFS"<<"\n";
+    // Resetting values for each process
+    for(auto process: _process_list){
+        process.Reset();
+    }
+
+    // Finish time calculations
+    _process_list[0].finish_time = _process_list[0].service_time;
+
+    for(int i = 1 ; i < _process_list.size() ; i++){
+        _process_list[i].finish_time = _process_list[i].service_time + _process_list[i-1].finish_time;
+    }
+
+    // Turnaround time calculations
+    float turn_sum = 0;
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        _process_list[i].turnaround_time = _process_list[i].finish_time - _process_list[i].arrival_time;
+        turn_sum+=_process_list[i].turnaround_time;
+    }
+
+    // Normalized turnaround time calculations
+    float norm_turn_sum = 0;
+    for(int i = 0 ; i< _process_list.size() ; i++){
+        _process_list[i].norm_turn = (float)_process_list[i].turnaround_time / (float)_process_list[i].service_time;
+        norm_turn_sum+=_process_list[i].norm_turn;
+    }
+
+    // Mean calculations
+    float turnaround_mean = turn_sum / (float) _process_list.size(); 
+    float norm_mean = norm_turn_sum / (float) _process_list.size();
+
+    if( mode == "trace") {
+        std::cout<<"FCFS  ";
+        for(int i = 0 ; i <=last_instance ; i++){
+            std::cout<<i%10<<" ";
+        }
+        std::cout<<"\n";
+        for(int i = 0 ; i<=47 ; i++){
+            std::cout<<"-";
+        }
+
+
+    }
+    else if (mode == "stats") {
+        print_stats("FCFS", _process_list, turnaround_mean, norm_mean);
+    }
 }
 
 void RR (std::vector<Process>& _process_list, std::string mode, int last_instance, int quanta){
-    //  std::cout<<"Ececuting RR with quanta: "<< quanta<<"\n";
+    // Resetting values for each process
+    for(auto process: _process_list){
+        process.Reset();
+    }
+
+    
 }
 
 void SPN (std::vector<Process>& _process_list, std::string mode, int last_instance){
-    // std::cout<<"Ececuting SPN"<<"\n";
+   // Resetting values for each process
+    for(auto process: _process_list){
+        process.Reset();
+    }
 }
 
 void SRT (std::vector<Process>& _process_list, std::string mode, int last_instance){
-    // std::cout<<"Ececuting SRT"<<"\n";
+    // Resetting values for each process
+    for(auto process: _process_list){
+        process.Reset();
+    }
 }
 
 void HRRN (std::vector<Process>& _process_list, std::string mode, int last_instance){
-    // std::cout<<"Ececuting HRRN"<<"\n";
+    // Resetting values for each process
+    for(auto process: _process_list){
+        process.Reset();
+    }
 }
 
 void FB_1 (std::vector<Process>& _process_list, std::string mode, int last_instance){
-    // std::cout<<"Ececuting FB_1"<<"\n";
+    // Resetting values for each process
+    for(auto process: _process_list){
+        process.Reset();
+    }
 }
 
 void FB_2i (std::vector<Process>& _process_list, std::string mode, int last_instance){
-    // std::cout<<"Ececuting FB_2i"<<"\n";
+    // Resetting values for each process
+    for(auto process: _process_list){
+        process.Reset();
+    }
 }
 
 void Aging(std::vector<Process>& _process_list, std::string mode, int last_instance, int quanta){
-    // std::cout<<"Ececuting Aging with quanta: "<< quanta<<"\n";
+    // Resetting values for each process
+    for(auto process: _process_list){
+        process.Reset();
+    }
 }
 
 int main(){
@@ -76,8 +203,6 @@ int main(){
         }
     }
 
-
-
     // Parsing Process information and adding to Process list
     for(int i = 0 ; i < _num_process ; i++){
         std::string p_list;
@@ -110,15 +235,12 @@ int main(){
         _process_list.push_back(p);
     }
 
+    // Sorting processes accroding to arrival_time
+    sort(_process_list.begin(), _process_list.end(), less_than_av());
+
     // for(auto p : _process_list){
     //     std::cout<<p.name<<" "<<p.arrival_time<<" "<<p.service_time<<" "<<p.priority<<"\n";
     // }
-
-    // for(auto pp : _Policy_list){
-    //     std::cout<<pp.name<<" "<<pp.number<<" "<<pp.quanta<<"\n";
-    // }
-    
-    // std::cout<<_mode<<" "<<_policy<<" "<<_last_instance<<" "<<_num_process<<"\n";
 
     // looping on the list of policies and executing each one
     for(auto pp : _Policy_list){
@@ -152,5 +274,6 @@ int main(){
             break;
         }
     }
+
     return 0;
 }
