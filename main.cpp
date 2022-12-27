@@ -70,19 +70,59 @@ void print_stats(std::string name, std::vector<Process>& _process_list, float me
     std::cout<<"\n\n";
 }
 
+void print_trace(std::string name,std::vector<Process>& _process_list, int last_instance){
+    std::cout<<name<<std::setw(7-name.length());
+    for(int i = 0 ; i <=last_instance ; i++){
+        std::cout<<i%10<<" ";
+    }
+    std::cout<<"\n";
+    std::cout << "------------------------------------------------\n";
+    for(int i = 0 ; i< _process_list.size() ; i++){
+        std::cout<<_process_list[i].name<<std::setw(6);
+        
+        for(int j = 0 ; j< last_instance; j++){
+        std::cout<<'|'<<_process_list[i].process_stat[j];
+        }
+
+        std::cout<<"|\n";
+    }
+    std::cout << "------------------------------------------------\n\n";
+}
+
 void FCFS (std::vector<Process>& _process_list, std::string mode, int last_instance){
     // Resetting values for each process
     for(auto &process: _process_list){
         process.Reset();
     }
 
+    for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].process_stat.resize(last_instance);
+    }
+
     // Finish time calculations
+    _process_list[0].start_time = _process_list[0].arrival_time;
     _process_list[0].finish_time = _process_list[0].arrival_time + _process_list[0].service_time;
     _process_list[0].completed = true;
 
     for(int i = 1 ; i < _process_list.size() ; i++){
+        _process_list[i].start_time = _process_list[i-1].finish_time;
         _process_list[i].finish_time = _process_list[i].service_time + _process_list[i-1].finish_time;
         _process_list[i].completed = true;
+    }
+
+    for(int i = 0 ; i< _process_list.size() ; i++){
+        for(int j = 0 ; j < _process_list[i].arrival_time; j++){
+        _process_list[i].process_stat[j] = ' ';
+        }
+        for(int j = _process_list[i].arrival_time ; j < _process_list[i].start_time; j++){
+           _process_list[i].process_stat[j] = '.'; 
+        }
+        for(int j = _process_list[i].start_time ; j < _process_list[i].finish_time; j++){
+           _process_list[i].process_stat[j] = '*'; 
+        }
+        for(int j = _process_list[i].finish_time ; j < last_instance; j++){
+           _process_list[i].process_stat[j] = ' '; 
+        }
     }
 
     // Turnaround time calculations
@@ -104,19 +144,14 @@ void FCFS (std::vector<Process>& _process_list, std::string mode, int last_insta
     float norm_mean = norm_turn_sum / (float) _process_list.size();
 
     if( mode == "trace") {
-        std::cout<<"FCFS  ";
-        for(int i = 0 ; i <=last_instance ; i++){
-            std::cout<<i%10<<" ";
-        }
-        std::cout<<"\n";
-        for(int i = 0 ; i<=47 ; i++){
-            std::cout<<"-";
-        }
-
-
+        print_trace("FCFS", _process_list, last_instance);
     }
     else if (mode == "stats") {
         print_stats("FCFS", _process_list, turnaround_mean, norm_mean);
+    }
+
+     for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].process_stat.clear();
     }
 }
 
@@ -199,7 +234,7 @@ void RR (std::vector<Process>& _process_list, std::string mode, int last_instanc
     float norm_mean = norm_turn_sum / (float) _process_list.size();
 
     if (mode == "trace") {
-
+        print_trace("RR-" + std::to_string(quanta), _process_list, last_instance);
     }
     else if (mode == "stats") {
         std::string name = "RR-" + std::to_string(quanta);
@@ -211,6 +246,10 @@ void SPN (std::vector<Process>& _process_list, std::string mode, int last_instan
    // Resetting values for each process
     for(auto &process: _process_list){
         process.Reset();
+    }
+
+     for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].process_stat.resize(last_instance);
     }
 
     // Finish time calculations
@@ -254,7 +293,7 @@ void SPN (std::vector<Process>& _process_list, std::string mode, int last_instan
     float norm_mean = norm_turn_sum / (float) _process_list.size();
 
     if (mode == "trace") {
-
+        print_trace("SPN", _process_list, last_instance);
     }
     else if (mode == "stats") {
         print_stats("SPN", _process_list, turnaround_mean, norm_mean);
@@ -295,8 +334,7 @@ void SRT (std::vector<Process>& _process_list, std::string mode, int last_instan
             if(_process_list[idx].service_remain == 0){
                 _process_list[idx].finish_time = current_time;
                 _process_list[idx].completed = true;
-                complete_cnt++;
-                
+                complete_cnt++; 
             }
         }
         else {
@@ -323,7 +361,7 @@ void SRT (std::vector<Process>& _process_list, std::string mode, int last_instan
     float norm_mean = norm_turn_sum / (float) _process_list.size();
 
     if (mode == "trace") {
-
+         print_trace("SRT", _process_list, last_instance);
     }
     else if (mode == "stats") {
         print_stats("SRT", _process_list, turnaround_mean, norm_mean);
@@ -383,7 +421,7 @@ void HRRN (std::vector<Process>& _process_list, std::string mode, int last_insta
 
 
     if (mode == "trace") {
-
+         print_trace("HRRN", _process_list, last_instance);
     }
     else if (mode == "stats") {
         print_stats("HRRN", _process_list, turnaround_mean, norm_mean);
@@ -396,12 +434,31 @@ void FB_1 (std::vector<Process>& _process_list, std::string mode, int last_insta
         process.Reset();
     }
 
-    if (mode == "trace") {
+    // Finish and start time calculations
 
+    // Turnaround time calculations
+    float turn_sum = 0;
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        _process_list[i].turnaround_time = _process_list[i].finish_time - _process_list[i].arrival_time;
+        turn_sum+=_process_list[i].turnaround_time;
+    }
+
+    // Normalized turnaround time calculations
+    float norm_turn_sum = 0;
+    for(int i = 0 ; i< _process_list.size() ; i++){
+        _process_list[i].norm_turn = (float)_process_list[i].turnaround_time / (float)_process_list[i].service_time;
+        norm_turn_sum+=_process_list[i].norm_turn;
+    }
+
+    // Mean calculations
+    float turnaround_mean = turn_sum / (float) _process_list.size(); 
+    float norm_mean = norm_turn_sum / (float) _process_list.size();
+
+    if (mode == "trace") {
+         print_trace("FB_1", _process_list, last_instance);
     }
     else if (mode == "stats") {
-        // print_stats("FB_1", _process_list, turnaround_mean, norm_mean);
-
+        print_stats("FB_1", _process_list, turnaround_mean, norm_mean);
     }
 }
 
@@ -411,26 +468,66 @@ void FB_2i (std::vector<Process>& _process_list, std::string mode, int last_inst
         process.Reset();
     }
 
-    if (mode == "trace") {
 
+
+    // Turnaround time calculations
+    float turn_sum = 0;
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        _process_list[i].turnaround_time = _process_list[i].finish_time - _process_list[i].arrival_time;
+        turn_sum+=_process_list[i].turnaround_time;
+    }
+
+    // Normalized turnaround time calculations
+    float norm_turn_sum = 0;
+    for(int i = 0 ; i< _process_list.size() ; i++){
+        _process_list[i].norm_turn = (float)_process_list[i].turnaround_time / (float)_process_list[i].service_time;
+        norm_turn_sum+=_process_list[i].norm_turn;
+    }
+
+    // Mean calculations
+    float turnaround_mean = turn_sum / (float) _process_list.size(); 
+    float norm_mean = norm_turn_sum / (float) _process_list.size();
+
+    if (mode == "trace") {
+         print_trace("FB_2i", _process_list, last_instance);
     }
     else if (mode == "stats") {
-        // print_stats("FB_2i", _process_list, turnaround_mean, norm_mean);
+        print_stats("FB_2i", _process_list, turnaround_mean, norm_mean);
 
     }
 }
 
 void Aging(std::vector<Process>& _process_list, std::string mode, int last_instance, int quanta){
     // Resetting values for each process
-    for(auto process: _process_list){
+    for(auto &process: _process_list){
         process.Reset();
     }
 
-    if (mode == "trace") {
 
+
+    // Turnaround time calculations
+    float turn_sum = 0;
+    for(int i = 0 ; i < _process_list.size() ; i++){
+        _process_list[i].turnaround_time = _process_list[i].finish_time - _process_list[i].arrival_time;
+        turn_sum+=_process_list[i].turnaround_time;
+    }
+
+    // Normalized turnaround time calculations
+    float norm_turn_sum = 0;
+    for(int i = 0 ; i< _process_list.size() ; i++){
+        _process_list[i].norm_turn = (float)_process_list[i].turnaround_time / (float)_process_list[i].service_time;
+        norm_turn_sum+=_process_list[i].norm_turn;
+    }
+
+    // Mean calculations
+    float turnaround_mean = turn_sum / (float) _process_list.size(); 
+    float norm_mean = norm_turn_sum / (float) _process_list.size();
+
+    if (mode == "trace") {
+         print_trace("Aging", _process_list, last_instance);
     }
     else if (mode == "stats") {
-        // print_stats("Aging", _process_list, turnaround_mean, norm_mean);
+        print_stats("Aging", _process_list, turnaround_mean, norm_mean);
 
     }
 }
