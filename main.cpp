@@ -150,7 +150,7 @@ void FCFS (std::vector<Process>& _process_list, std::string mode, int last_insta
         print_stats("FCFS", _process_list, turnaround_mean, norm_mean);
     }
 
-     for(int i = 0 ; i< _process_list.size(); i++){
+    for(int i = 0 ; i< _process_list.size(); i++){
         _process_list[i].process_stat.clear();
     }
 }
@@ -159,6 +159,10 @@ void RR (std::vector<Process>& _process_list, std::string mode, int last_instanc
     // Resetting values for each process
     for(auto &process: _process_list){
         process.Reset();
+    }
+
+    for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].process_stat.resize(last_instance);
     }
 
     std::queue <Process *> active_processes;
@@ -240,6 +244,10 @@ void RR (std::vector<Process>& _process_list, std::string mode, int last_instanc
         std::string name = "RR-" + std::to_string(quanta);
         print_stats(name, _process_list, turnaround_mean, norm_mean);
     }
+
+    for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].process_stat.clear();
+    }
 }
 
 void SPN (std::vector<Process>& _process_list, std::string mode, int last_instance){
@@ -248,11 +256,12 @@ void SPN (std::vector<Process>& _process_list, std::string mode, int last_instan
         process.Reset();
     }
 
-     for(int i = 0 ; i< _process_list.size(); i++){
+    for(int i = 0 ; i< _process_list.size(); i++){
         _process_list[i].process_stat.resize(last_instance);
     }
 
     // Finish time calculations
+    _process_list[0].start_time = _process_list[0].arrival_time; 
     _process_list[0].finish_time = _process_list[0].arrival_time + _process_list[0].service_time;
     _process_list[0].completed = true;
 
@@ -266,13 +275,30 @@ void SPN (std::vector<Process>& _process_list, std::string mode, int last_instan
         if(_process_list[i].arrival_time <= current_time){
             if(!_process_list[i].completed){
                 _process_list[i].completed = true;
+                _process_list[i].start_time = current_time;
                 current_time = current_time + _process_list[i].service_time;
                 _process_list[i].finish_time = current_time;
                 i = 0;
             }
         }
     }
+
     sort(_process_list.begin()+1, _process_list.end(), less_than_av());
+
+    for(int i = 0 ; i< _process_list.size() ; i++){
+        for(int j = 0 ; j < _process_list[i].arrival_time; j++){
+        _process_list[i].process_stat[j] = ' ';
+        }
+        for(int j = _process_list[i].arrival_time ; j < _process_list[i].start_time; j++){
+           _process_list[i].process_stat[j] = '.'; 
+        }
+        for(int j = _process_list[i].start_time ; j < _process_list[i].finish_time; j++){
+           _process_list[i].process_stat[j] = '*'; 
+        }
+        for(int j = _process_list[i].finish_time ; j < last_instance; j++){
+           _process_list[i].process_stat[j] = ' '; 
+        }
+    }
 
     // Turnaround time calculations
     float turn_sum = 0;
@@ -297,6 +323,10 @@ void SPN (std::vector<Process>& _process_list, std::string mode, int last_instan
     }
     else if (mode == "stats") {
         print_stats("SPN", _process_list, turnaround_mean, norm_mean);
+    }
+
+    for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].process_stat.clear();
     }
 }
 
@@ -374,8 +404,13 @@ void HRRN (std::vector<Process>& _process_list, std::string mode, int last_insta
         process.Reset();
     }
 
+    for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].process_stat.resize(last_instance);
+    }
+
     // Finish time calculations
     // We choose first process to go next since response ratio is 1 for all processes 
+    _process_list[0].start_time = _process_list[0].arrival_time;
     _process_list[0].finish_time = _process_list[0].arrival_time + _process_list[0].service_time;
     _process_list[0].completed = true;
 
@@ -396,9 +431,25 @@ void HRRN (std::vector<Process>& _process_list, std::string mode, int last_insta
         }
         max_wait = 0;
         max_p->completed = true;
+        max_p->start_time = current_time;
         current_time = current_time + max_p->service_time;
         max_p->finish_time = current_time;
         cnt++;
+    }
+
+    for(int i = 0 ; i< _process_list.size() ; i++){
+        for(int j = 0 ; j < _process_list[i].arrival_time; j++){
+        _process_list[i].process_stat[j] = ' ';
+        }
+        for(int j = _process_list[i].arrival_time ; j < _process_list[i].start_time; j++){
+           _process_list[i].process_stat[j] = '.'; 
+        }
+        for(int j = _process_list[i].start_time ; j < _process_list[i].finish_time; j++){
+           _process_list[i].process_stat[j] = '*'; 
+        }
+        for(int j = _process_list[i].finish_time ; j < last_instance; j++){
+           _process_list[i].process_stat[j] = ' '; 
+        }
     }
 
     // Turnaround time calculations
@@ -425,6 +476,10 @@ void HRRN (std::vector<Process>& _process_list, std::string mode, int last_insta
     }
     else if (mode == "stats") {
         print_stats("HRRN", _process_list, turnaround_mean, norm_mean);
+    }
+
+    for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].process_stat.clear();
     }
 }
 
