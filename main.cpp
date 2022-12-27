@@ -186,10 +186,22 @@ void RR (std::vector<Process>& _process_list, std::string mode, int last_instanc
 
         if(temp->service_remain - quanta > 0){
             temp->service_remain -= quanta;
+            for(int f = 0 ; f< _process_list.size(); f++){
+                if(_process_list[f].name != temp->name){
+                    for(int m = current_time ; m < current_time + quanta; m++)
+                        _process_list[f].wait.push_back(m);
+                }
+            }
             current_time+= quanta;
         }
 
         else{
+            for(int f = 0 ; f< _process_list.size(); f++){
+                if(_process_list[f].name != temp->name){
+                    for(int m = current_time ; m < current_time + temp->service_remain; m++)
+                        _process_list[f].wait.push_back(m);
+                }
+            }
             current_time+=temp->service_remain;
             temp->service_remain = 0;
             complete_cnt++;
@@ -219,6 +231,31 @@ void RR (std::vector<Process>& _process_list, std::string mode, int last_instanc
         }
     }
 
+    for(int i = 0 ; i< _process_list.size() ; i++){
+
+        for(int j = 0 ; j < _process_list[i].arrival_time; j++){
+        _process_list[i].process_stat[j] = ' ';
+        }
+
+        for(int j = _process_list[i].arrival_time ; j < _process_list[i].start_time; j++){
+          
+           _process_list[i].process_stat[j] = '.'; 
+        }
+        for(int j = _process_list[i].start_time ; j < _process_list[i].finish_time; j++){
+            if(binary_search(_process_list[i].wait.begin(),_process_list[i].wait.end(), j)){
+                _process_list[i].process_stat[j] = '.';
+            }
+            else {
+                _process_list[i].process_stat[j] = '*';
+            }
+        }
+
+        for(int j = _process_list[i].finish_time ; j < last_instance; j++){
+           _process_list[i].process_stat[j] = ' '; 
+        }
+    }
+
+
     // Turnaround time calculations
     float turn_sum = 0;
     for(int i = 0 ; i < _process_list.size() ; i++){
@@ -247,6 +284,9 @@ void RR (std::vector<Process>& _process_list, std::string mode, int last_instanc
 
     for(int i = 0 ; i< _process_list.size(); i++){
         _process_list[i].process_stat.clear();
+    }
+    for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].wait.clear();
     }
 }
 
@@ -336,6 +376,10 @@ void SRT (std::vector<Process>& _process_list, std::string mode, int last_instan
         process.Reset();
     }
 
+    for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].process_stat.resize(last_instance);
+    }
+
     int current_time = 0;
     int complete_cnt = 0;
 
@@ -357,9 +401,14 @@ void SRT (std::vector<Process>& _process_list, std::string mode, int last_instan
         }
         if(idx != -1){
             if(_process_list[idx].service_remain == _process_list[idx].service_time){
-                _process_list[idx].start_time = current_time;; 
+                _process_list[idx].start_time = current_time;
             }
             _process_list[idx].service_remain -= 1;
+            for(int k = 0 ; k < _process_list.size(); k++){
+                if(_process_list[k].name != _process_list[idx].name){
+                    _process_list[k].wait.push_back(current_time);
+                }
+            }
             current_time++;
             if(_process_list[idx].service_remain == 0){
                 _process_list[idx].finish_time = current_time;
@@ -369,6 +418,30 @@ void SRT (std::vector<Process>& _process_list, std::string mode, int last_instan
         }
         else {
             current_time++;
+        }
+    }
+
+    for(int i = 0 ; i< _process_list.size() ; i++){
+
+        for(int j = 0 ; j < _process_list[i].arrival_time; j++){
+        _process_list[i].process_stat[j] = ' ';
+        }
+
+        for(int j = _process_list[i].arrival_time ; j < _process_list[i].start_time; j++){
+          
+           _process_list[i].process_stat[j] = '.'; 
+        }
+        for(int j = _process_list[i].start_time ; j < _process_list[i].finish_time; j++){
+            if(binary_search(_process_list[i].wait.begin(),_process_list[i].wait.end(), j)){
+                _process_list[i].process_stat[j] = '.';
+            }
+            else {
+                _process_list[i].process_stat[j] = '*';
+            }
+        }
+
+        for(int j = _process_list[i].finish_time ; j < last_instance; j++){
+           _process_list[i].process_stat[j] = ' '; 
         }
     }
 
@@ -395,6 +468,13 @@ void SRT (std::vector<Process>& _process_list, std::string mode, int last_instan
     }
     else if (mode == "stats") {
         print_stats("SRT", _process_list, turnaround_mean, norm_mean);
+    }
+
+    for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].process_stat.clear();
+    }
+    for(int i = 0 ; i< _process_list.size(); i++){
+        _process_list[i].wait.clear();
     }
 }
 
@@ -510,7 +590,7 @@ void FB_1 (std::vector<Process>& _process_list, std::string mode, int last_insta
     float norm_mean = norm_turn_sum / (float) _process_list.size();
 
     if (mode == "trace") {
-         print_trace("FB_1", _process_list, last_instance);
+        //  print_trace("FB_1", _process_list, last_instance);
     }
     else if (mode == "stats") {
         print_stats("FB_1", _process_list, turnaround_mean, norm_mean);
@@ -544,7 +624,7 @@ void FB_2i (std::vector<Process>& _process_list, std::string mode, int last_inst
     float norm_mean = norm_turn_sum / (float) _process_list.size();
 
     if (mode == "trace") {
-         print_trace("FB_2i", _process_list, last_instance);
+        //  print_trace("FB_2i", _process_list, last_instance);
     }
     else if (mode == "stats") {
         print_stats("FB_2i", _process_list, turnaround_mean, norm_mean);
@@ -579,7 +659,7 @@ void Aging(std::vector<Process>& _process_list, std::string mode, int last_insta
     float norm_mean = norm_turn_sum / (float) _process_list.size();
 
     if (mode == "trace") {
-         print_trace("Aging", _process_list, last_instance);
+        //  print_trace("Aging", _process_list, last_instance);
     }
     else if (mode == "stats") {
         print_stats("Aging", _process_list, turnaround_mean, norm_mean);
@@ -596,10 +676,10 @@ int main(){
     std::vector <Process> _process_list;
     std::vector <Policy> _Policy_list;
 
-    std::cin >> _mode;
-    std::cin >> _policy;
-    std::cin >> _last_instance;
-    std::cin >> _num_process;
+    std::cin>> _mode;
+    std::cin>> _policy;
+    std::cin>> _last_instance;
+    std::cin>> _num_process;
 
 
     // Parsing policy information and adding to policy list

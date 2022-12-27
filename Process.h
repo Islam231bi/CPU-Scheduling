@@ -24,6 +24,7 @@ public:
     int FB_priority;
     int last_instance;
     std::vector<char> process_stat;
+    std::vector<int> wait;
     
     Process(char name, int arrival_time, int service_time, int priority);
     Process() = default;
